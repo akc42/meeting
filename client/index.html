@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<!--
+  Copyright (c) 2014 Alan Chandler. All rights reserved
+      This file is part of MBBall, an American Football Results Picking
+    Competition Management software suite.
+
+    MBBall is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    MBBall is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with MBBall (file COPYING.txt).  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+      content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes, shrink-to-fit=no">
+
+    <title>Football Mobile</title>
+    <!-- because this can be served from anywhere base allows us to use relative urls -->
+    <base href="/">
+    <link rel="shortcut icon" sizes="32x32" href="images/meeting-logo-32x32.png">
+
+    <meta name="theme-color" content="#ff00ff">
+    <!-- Add to homescreen for Chrome on Android. Fallback for manifest.json -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="FMob">
+
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FMob">
+
+    <!-- Homescreen icons -->
+    <link rel="apple-touch-icon" href="images/meeting-logo.svg">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/meeting-logo.svg">
+    <link rel="apple-touch-icon" sizes="96x96" href="images/meeting-logo.svg">
+    <link rel="apple-touch-icon" sizes="144x144" href="images/meeting-logo.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="images/meeting-logo.svg">
+
+    <!-- Tile icon for Windows 8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="images/meeting-logo.svg">
+    <meta name="msapplication-TileColor" content="#42d9ff">
+    <meta name="msapplication-tap-highlight" content="no">
+    <link rel="manifest" href="manifest.json">
+    <!-- The main stylesheet -->
+    <link rel="stylesheet" href="/style.css">
+    <!-- Fonts I am going to need -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <!-- put this here because its not available at google right now -->
+
+
+    <script>
+      /*hold off for now
+      if('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+      }
+      */
+    </script>
+    <script src="/libs/webcomponents-loader.js"></script>
+    <script type="module" src="/libs/lit-element.js"></script>
+
+    <script type="module" src="/pages/main-app.js"></script> 
+    <script type="module" src="/pages/error-manager.js"></script>
+    <script type="module" src="/pages/session-manager.js"></script>
+    <script type="module" src="/pages/page-manager.js"></script>
+    <script type="module" src="/modules/api.js"></script>
+    <style>
+      html {
+        background: #ffffff;
+      }
+
+      body {
+        margin: 0;
+        height:100vh;
+        width:100vw;
+        font-family: sans-serif;
+        line-height: 1.5;
+        letter-spacing: 0.1em;
+        background-color: var(--background-color);
+        color: var(--color);
+      }
+
+      /* styling for render while resources are loading */
+      main-app[unresolved] {
+        display: flex;
+        flex-direction: column-reverse;
+        font-size: 10pt;
+
+        height: 100%;
+        width: 100%
+
+      }
+
+      main-app[unresolved] header {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        flex: 0 1 64px;
+        background-color: var(--accent-color);
+        color: var(--accent-constrast-color);
+        box-shadow: 0px 20px 41px 0px rgba(0,0,0,0.2);
+      }
+
+      main-app[unresolved] section {
+        flex: 1,1,auto;
+        letter-spacing: 0.3em;
+        font-weight: 600;
+      }
+      @media (min-width: 500px) {
+
+        main-app[unresolved] {
+          flex-direction: column;
+        }
+      }
+
+    </style>
+
+  </head>
+  <body>
+    <main-app unresolved >
+      <header class="header"><div>meeting-logo</div></header>
+      <section><div>Application Loading ...</div></section>
+    </main-app>
+    <noscript>
+      Please enable JavaScript to use Meeting.
+    </noscript>
+    <script type="module">
+      window.performance.mark('index_loaded');
+      window.performance.measure('index_loaded','navigationStart','index_loaded');
+    </script>
+
+  </body>
+</html>
