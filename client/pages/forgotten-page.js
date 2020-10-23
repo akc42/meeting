@@ -18,36 +18,27 @@
     along with Meeting.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
-import api from '../modules/api.js';
+import '../elements/app-page.js'
+import button from '../styles/button.js'
+import {switchPath} from '../libs/utils.js';
 
 /*
-     <session-home>
+     <forgotten-page>
 */
-class SessionHome extends LitElement {
+class ForgottenPage extends LitElement {
   static get styles() {
-    return css``;
+    return [button, css``];
   }
   static get properties() {
     return {
-      master: {type: Boolean},  //If I am the master tab, I am allowed to log in
-      name:{type: String}, //name by which user will be known as in chat room
-      rid: {type:Number},
-      rooms: {type: Array}
+    
     };
   }
   constructor() {
     super();
-    this.name = '';
-    this.rid = 0;
-    this.rooms = [];
   }
   connectedCallback() {
     super.connectedCallback();
-    const rooms = localStorage.getItem('recentRooms');
-    if (rooms !== null) {
-      this.rooms = JSON.parse(rooms);
-    }
-
   }
   disconnectedCallback() {
     super.disconnectedCallback();
@@ -64,26 +55,21 @@ class SessionHome extends LitElement {
     return html`
       <style>
       </style>
-      <div class="container">
-        <styled-input label="Name" .value=${this.name} @value-changed=${this._nameChanged}></styled-input>
-        <styled-input label="Room" combo .value=${this.rid} @value-changed=${this._roomChanged} .items=${this.rooms}></styled-input>
-      </div>
+      <app-page heading="Forgotten Password">
+      <p>You have been sent an e-mail continining a special onetime password that can be used to log into your account.  Use this code to 
+      log in and access your profile page.  From there you can change your password.</p>
+      <p>Please note that the code can only be used once and must be used within the next ${localStorage.getItem('pinExpires')} hours.</p>
+      <p>If you forgot to change your password.  You will have to wait until the current short term password expires, and then repeat
+      the process that led you here in the first place.  Note, that in order to prevent abuse, we will not supply a new short term passwords 
+      until at least ${localStorage.getItem('pinExpires')} hours has passed since the last request.</p>
+      <button slot="action" @click=${this._login}><material-icon>login</material-icon> Login</button>
+      </app-page>
     `;
   }
-  _nameChanged(e) {
-    e.stopPropogation();
-    this.name = e.changed;
-  }
-  _roomChanged(e) {
-    e.stopPropogation();
-    const room = e.changed;
-    if (typeof room === 'string') {
-      api('user/check_room', {name: room}).then(response => {
-        const c = response;
-      });
-    } else {
-      this.rid = room;
-    }
+  _login(e) {
+    e.stopPropagation();
+    switchPath('/login');
+
   }
 }
-customElements.define('session-home', SessionHome);
+customElements.define('forgotten-page', ForgottenPage);

@@ -31,7 +31,6 @@ document.head.appendChild(link);
 class MaterialIcon extends LitElement {
   static get styles() {
     return css`
-     
       :host{
         font-family:"Material Icons";
         font-weight:normal;
@@ -47,12 +46,11 @@ class MaterialIcon extends LitElement {
         font-feature-settings:'liga';
         -webkit-font-smoothing:antialiased;
       }
-
     `;
   }
   render() {
     return html`
-    <span  class="material-icons"><slot></slot></span>
+      <span  class="material-icons"><slot></slot></span>
     `;
   }
 }

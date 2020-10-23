@@ -13,7 +13,10 @@ export default {
     'node_modules/lit-html/directives/template-content.js',
     'node_modules/lit-html/directives/unsafe-html.js',
     'node_modules/lit-html/directives/until.js',
-    'node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js'
+    'node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js',
+    'node_modules/@akc42/distributed-router/route.js',
+    'node_modules/@akc42/distributed-router/location.js',
+    'node_modules/@akc42/app-utils/utils.js'
   ],
   output: {
     dir: 'client/libs',

@@ -19,11 +19,11 @@
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-import {SessionStatus, AuthChanged, LocationAltered } from "../modules/events.js";
-import './fm-page.js.js';
+import {ErrorStatus, AuthChanged } from '../modules/events.js';
+import {LocationAltered} from '../libs/location.js';
+import '../elements/app-page.js';
 import button from '../styles/button.js';
 import page from '../styles/page.js';
-import global from '../modules/globals.js';
 
 import Debug from '../modules/debug.js';
 
@@ -77,17 +77,17 @@ class ErrorManager extends LitElement {
   render() {
     return html`
       ${cache(this.anError?html`
-        <fm-page .heading=${this.forbidden?'Forbidden': 'Something Went Wrong'}>
+        <app-page .heading=${this.forbidden?'Forbidden': 'Something Went Wrong'}>
           ${cache(this.forbidden ? html`
             <p class="forbidden">You have tried to access a forbidden area.</p>
           `:html`
             <p>We are sorry but something has gone wrong with the operation of the site.  The problem has been logged
             with the server and it will be dealt with soon.</p>
-            <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${global.webmaster}">${global.webmaster}</a>) to let
+            <p>Nevertheless, you may wish to e-mail the web master (<a href="mailto:${localStorage.getItem('webmaster')}">${localStorage.getItem('webmaster')}</a>) to let
             them know that there has been an issue.</p>             
             <button slot="action" @click=${this._reset}>Restart</button>
           `)}
-        </fm-page>
+        </app-page>
       `: '')}
     `;
   }
@@ -98,7 +98,7 @@ class ErrorManager extends LitElement {
 ${e.error.stack}
 has occured`;
     logger(message, true);
-    this.dispatchEvent(new SessionStatus({state:'error'}));
+    this.dispatchEvent(new ErrorStatus('error'));
     this.anError = true;
   }
   _promiseRejection(e) {
@@ -111,14 +111,14 @@ has occured`;
     } else {
       const message = `Client Error: Uncaught Promise Rejection with reason ${e.reason} has occured`;
       logger(message, true);
-      this.dispatchEvent(new SessionStatus({ state: 'error' }));
+      this.dispatchEvent(new ErrorStatus('error'));
       this.anError = true;
     }
   }
   _reset() {
     this.anError = false;
     this.forbidden = false;
-    this.dispatchEvent(new SessionStatus({state:'reset'}));
+    this.dispatchEvent(new ErrorStatus('reset'));
   }
   _serverError(e) {
     if (this.anError) return;
@@ -132,7 +132,7 @@ has occured`;
       this.forbidden=true;
 
     }
-    this.dispatchEvent(new SessionStatus({state: 'error'}));
+    this.dispatchEvent(new ErrorStatus( 'error'));
     this.anError = true;
   }
 

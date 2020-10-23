@@ -13,6 +13,7 @@ Some things that I want to achieve
 - Rooms may have an opening time, before which user is taken to a page with a count down timer until the room opens (if within
   an hour of the opening time) which automatically redirects them to the room when it reaches zero. If earlier than an hour before
   it should just say room closed.
+- A rooms opening time may repeat in units of a week, fortnight, or month (start based - is nth of the month) or month (end based - ie n days from end of month)
 - In a room each user should be able to select a single audio devices (if they have more than one), and one or more video cameras to show. At any   
   time they should be able to mute the sound and/or "mute" one of the cameras without leaving the room.  
 - There should be two room views:-
@@ -25,5 +26,5 @@ Some things that I want to achieve
   3) All cameras showing equal size.
 - In any view were one or more cameras are small they should show above the large one and be dragable by the viewer to another position on the screen
 - One user is designated as admin (created when database is first set up).  The admin may create other users but these users are not able to create others.
-- Each user has a profile page where they may change their name and or password.
-- Users when created are given a one time 6 digit pin, which enables them to only visit the profile page to set up a password.  The same is true of forgotten passwords.  The pin is emailed (if the user has provided an e-mail address.)
+- Each user has a profile page where they may change their name and or password. They may also set up an e-mail address - see next point
+- Users when created are given a one time 6 digit pin, which enables them to only visit the profile page to set up a password.  The same is true of forgotten passwords.  The pin is emailed (if and only if the user has provided an e-mail address.)

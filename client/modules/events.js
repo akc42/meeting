@@ -1,20 +1,23 @@
 /**
-    @licence
+@licence
     Copyright (c) 2020 Alan Chandler, all rights reserved
 
-    This file is part of PASv5, an implementation of the Patient Administration
-    System used to support Accuvision's Laser Eye Clinics.
+    This file is part of Meeting.
 
-    PASv5 is licenced to Accuvision (and its successors in interest) free of royality payments
-    and in perpetuity in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
-    implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Accuvision
-    may modify, or employ an outside party to modify, any of the software provided that
-    this modified software is only used as part of Accuvision's internal business processes.
+    Meeting is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    The software may be run on either Accuvision's own computers or on external computing
-    facilities provided by a third party, provided that the software remains soley for use
-    by Accuvision (or by potential or existing customers in interacting with Accuvision).
+    Meeting is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Meeting.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 /*
   The purpose of this file is to hold all the definitions of custom events used in pas.  We define
   event here as a sublassing of window event and then don't need to use customEvent.
@@ -38,21 +41,7 @@
 
 */
 
-export class ApiError extends Event {
-  
 
-  /*
-     The following are the fields provided by this event
-
-     reason: reason for error
-
-  */
-
-  constructor(reason) {
-    super('api-error',{composed: true, bubbles: true});
-    this.reason = reason;
-  }
-};
 
 export class AuthChanged extends Event {
   
@@ -184,54 +173,6 @@ export class CompetitionChanged extends Event {
 };
 
 
-export class CompetitionCreate extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     competition: object with name, and administrator fields.
-
-  */
-
-  constructor(competition) {
-    super('competition-create',{composed: true, bubbles: true});
-    this.competition = competition;
-  }
-};
-
-
-export class CompetitionDelete extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     cid: cid of competition to be deleted (note this is after confirmation)
-
-  */
-
-  constructor(cid) {
-    super('competition-delete',{composed: true, bubbles: true});
-    this.cid = cid;
-  }
-};
-
-
-export class CompetitionsReread extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     none: no fields, this is just an r
-
-  */
-
-  constructor() {
-    super('competitions-reread',{composed: true, bubbles: true});
-  }
-};
 
 export class DeleteReply extends Event {
   
@@ -265,48 +206,19 @@ export class DeleteRequest extends Event {
   }
 };
 
-export class EmojiClosed extends Event {
-  
+export class ErrorStatus extends Event {
+
 
   /*
      The following are the fields provided by this event
 
-     none: Just indicates emojo panel dialog closed 
+     status: We have an update releted to our error
 
   */
 
-  constructor() {
-    super('emoji-closed',{composed: true, bubbles: true});
-  }
-};
-
-export class EmojiRequest extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     none: 
-
-  */
-
-  constructor() {
-    super('emoji-request',{composed: true, bubbles: true});
-  }
-};
-export class EmojiSelect extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     emoji: a single character from the range of emojis available
-
-  */
-
-  constructor(emoji) {
-    super('emoji-select',{composed: true, bubbles: true});
-    this.emoji = emoji;
+  constructor(status) {
+    super('error-status', { composed: true, bubbles: true });
+    this.status = status;
   }
 };
 
@@ -326,21 +238,6 @@ export class FormError extends Event {
 };
 
 
-export class FormResponse extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     response: The response from the api call.
-
-  */
-
-  constructor(response) {
-    super('form-response',{composed: true, bubbles: true});
-    this.response = response;
-  }
-};
 
 
 export class InputReply extends Event {
@@ -415,239 +312,6 @@ export class KeyUpdated extends Event {
   }
 };
 
-export class LocationAltered extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     none: 
-
-  */
-
-  constructor() {
-    super('location-altered',{composed: true, bubbles: true});
-  }
-};
-
-export class MatchChanged extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     match: rid and aid from match plus field(s) that have changed
-
-  */
-
-  constructor(match) {
-    super('match-changed',{composed: true, bubbles: true});
-    this.match = match;
-  }
-};
-
-export class MatchCreate extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     match: rid and aid for new match
-
-  */
-
-  constructor(match) {
-    super('match-create',{composed: true, bubbles: true});
-    this.match = match;
-  }
-};
-
-export class MatchDelete extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     match: rid and aid of match to delete
-
-  */
-
-  constructor(match) {
-    super('match-delete',{composed: true, bubbles: true});
-    this.match = match;
-  }
-};
-export class MatchPick extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     pick: {cid: xxx, rid: xxx,uid: xxx, aid: xxx, pid: xxx, over: true/false} (pid and over only present if relevant)
-
-  */
-
-  constructor(pick) {
-    super('match-pick',{composed: true, bubbles: true});
-    this.pick = pick;
-  }
-};
-
-export class MatchSwap extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     match: rid and aid of match + drop if we are dropping hid from new record NOTE;
-            With drop, from a users perspective, we have just deselected the aid.  The old hid (assuming there was one)
-            becomes the new aid and the new hid is set to null. This event is not used if the result is deleting the match (no hid when aid deselected)
-
-  */
-
-  constructor(match) {
-    super('match-swap',{composed: true, bubbles: true});
-    this.match = match;
-  }
-};
-
-export class MemberApprove extends Event {
-  /*
-     The following are the fields provided by this event
-
-     uid: Uid of member approved
-
-  */
-  constructor(uid) {
-    super('member-approve',{composed: true, bubbles: true});
-    this.uid = uid;
-  }
-};
-
-
-export class MemberReject extends Event {
-  /*
-     The following are the fields provided by this event
-
-     uid: uid of member rejected (after confirmation)
-
-  */
-  constructor(uid) {
-    super('member-reject',{composed: true, bubbles: true});
-    this.uid = uid;
-  }
-};
-
-export class MenuAdd extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     none: we are only using this for close
-  */
-
-  constructor() {
-    super('menu-add', { composed: true, bubbles: true });
-  }
-};
-
-
-export class MenuRemove extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     menu: item being removed 
-
-  */
-
-  constructor(menu) {
-    super('menu-remove',{composed: true, bubbles: true});
-    this.menu = menu;
-  }
-};
-export class MenuReset extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     none: 
-
-  */
-
-  constructor(m) {
-    super('menu-reset',{composed: true, bubbles: true});
-    this.menu = m || false;
-  }
-};
-
-export class OptionComment extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     comment: comment (fm-rounds will do the update and knows what the cid, rid and uid are)
-
-  */
-
-  constructor(comment) {
-    super('option-comment',{composed: true, bubbles: true});
-    this.comment = comment;
-  }
-};
-
-
-export class OptionCreate extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     option: rid, label
-
-  */
-
-  constructor(option) {
-    super('option-create',{composed: true, bubbles: true});
-    this.option = option;
-  }
-};
-
-export class OptionDelete extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     option: rid, opid
-
-  */
-
-  constructor(option) {
-    super('option-delete',{composed: true, bubbles: true});
-    this.option = option;
-  }
-};
-
-export class OptionPick extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     pick: opid of option picked. (fm-rounds will do the update and knows what the cid, rid and uid are)
-
-  */
-
-  constructor(pick) {
-    super('option-pick',{composed: true, bubbles: true});
-    this.pick = pick;
-  }
-};
 
 export class OverlayClosed  extends Event {
   
@@ -761,127 +425,6 @@ export class PageTitle extends Event {
 };
 
 
-export class PlayoffPick extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     pick: tid of team being picked.  and pick (setting or unsetting as true or false)
-
-  */
-
-  constructor(pick) {
-    super('playoff-pick',{composed: true, bubbles: true});
-    this.pick = pick;
-  }
-};
-
-export class PlayoffFail extends Event {
-  /*
-     The following are the fields provided by this event
-
-     pick: tid of team and pick (setting or unsetting as true or false)
-
-  */
-  constructor(pick) {
-    super('playoff-fail',{composed: true, bubbles: true});
-    this.pick = pick;
-  }
-};
-
-export class PromoteList extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     list: List of users who may be (or may not be) being promoted
-
-  */
-
-  constructor(list) {
-    super('promote-list',{composed: true, bubbles: true});
-    this.list = list;
-  }
-};
-
-export class RidChange extends Event {
-  /*
-     The following are the fields provided by this event
-
-     rid: rid that we are changing to (in current competition)
-
-  */
-  constructor(rid) {
-    super('rid-change',{composed: true, bubbles: true});
-    this.rid = rid;
-  }
-};
-export class RoundChanged extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     changed: object of  fields change.  Must include rid.
-
-  */
-
-  constructor(changed) {
-    super('round-changed',{composed: true, bubbles: true});
-    this.changed = changed;
-  }
-};
-
-export class RoundCreate extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     round: Name of Round.
-
-  */
-
-  constructor(round) {
-    super('round-create',{composed: true, bubbles: true});
-    this.round = round;
-  }
-};
-
-export class RoundDelete extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     round: rid of round to delete.
-
-  */
-
-  constructor(round) {
-    super('round-delete',{composed: true, bubbles: true});
-    this.round = round;
-  }
-};
-
-export class RoundSelected extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     rid: Round Number
-
-  */
-
-  constructor(rid) {
-    super('round-selected',{composed: true, bubbles: true});
-    this.rid = rid;
-  }
-};
-
 
 export class RouteChanged extends Event {
   
@@ -899,162 +442,6 @@ export class RouteChanged extends Event {
   }
 };
 
-export class SessionStatus extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     status: We have an update releted to our progress through the session process
-
-  */
-
-  constructor(status) {
-    super('session-status',{composed: true, bubbles: true});
-    if (status === 'authorised') console.log('session event', this);
-    this.status = status;
-  }
-};
-
-export class TeamAssign extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     assign: An object consiting of tid (String) and assign Boolean fields
-
-  */
-
-  constructor(assign) {
-    super('team-assign',{composed: true, bubbles: true});
-    this.assign = assign;
-  }
-};
-
-export class TeamDeselected extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     tid:   tid of team selected
-
-  */
-
-  constructor(tid) {
-    super('team-deselected', { composed: true, bubbles: true });
-    this.tid = tid;
-  }
-};
-
-export class TeamEliminated extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     team: tid and eliminated
-
-  */
-
-  constructor(team) {
-    super('team-eliminated',{composed: true, bubbles: true});
-    this.team = team;
-  }
-};
-export class TeamLock extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     lock: True or false dependant on new state.
-
-  */
-
-  constructor(lock) {
-    super('team-lock',{composed: true, bubbles: true});
-    this.lock = lock;
-  }
-};
-
-export class TeamPoint extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     point: An object consisting of tid (String) and points (Number);
-
-  */
-
-  constructor(point) {
-    super('team-point',{composed: true, bubbles: true});
-    this.point = point;
-  }
-};
-
-export class TeamsReset extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     none: 
-
-  */
-
-  constructor() {
-    super('teams-reset',{composed: true, bubbles: true});
-  }
-};
-
-export class TeamSelected extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     tid:   tid of team selected
-
-  */
-
-  constructor(tid) {
-    super('team-selected',{composed: true, bubbles: true});
-    this.tid = tid;
-  }
-};
-export class TeamsSet extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     none:
-
-  */
-
-  constructor() {
-    super('teams-set',{composed: true, bubbles: true});
-  }
-};
-
-export class UserSelected extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     uid: id of selected user
-
-  */
-
-  constructor(uid) {
-    super('user-selected',{composed: true, bubbles: true});
-    this.uid = uid;
-  }
-};
 
 export class ValueChanged extends Event {
   
@@ -1072,19 +459,4 @@ export class ValueChanged extends Event {
   }
 };
 
-export class WaitRequest extends Event {
-  
-
-  /*
-     The following are the fields provided by this event
-
-     wait: true or false, depending with wait on or off.
-
-  */
-
-  constructor(wait) {
-    super('wait-request',{composed: true, bubbles: true});
-    this.wait = wait;
-  }
-};
 

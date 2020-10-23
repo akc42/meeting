@@ -19,20 +19,35 @@
 */
 
 /*
-    `<app-form>` Provides a form simulated by ajax
+    `<form-manager>` Provides a form simulated by ajax
       It looks for children with a validate function to validate the components
       it looks for children with a name and value attribute to pick to send to the url provided.
 
 */
 
 import { LitElement, html , css} from '../libs/lit-element.js';
-import api from '../modules/api.js';
-import walk from '../modules/walk.js';
-import {FormResponse } from '../modules/events.js';
+
+import {walk, api} from '../libs/utils.js';
+
+export class FormResponse extends Event {
+  /*
+     The following are the fields provided by this event
+
+     response: The response from the api call.
+  */
+  constructor(response) {
+    super('form-response', { composed: true, bubbles: true });
+    this.response = response;
+  }
+};
 
 class FormManager extends LitElement  {
   static get styles () {
-    return css``;
+    return css`
+      :host {
+        height: 100%;
+      }
+    `;
   }
   static get properties() {
     return {
@@ -44,27 +59,9 @@ class FormManager extends LitElement  {
     this.action = '';
     this.inProgress = false;
   }
-  connectedCallback() {
-    super.connectedCallback();
-  }
-  disconnectedCallback() {
-    super.disconnectedCallback();
-  }
-  firstUpdated() {
-
-  }
-
-
 
   render() {
     return html`
-      <style>
-        :host {
-          height: 100%;
-        }
-
-
-      </style>
       <slot id="mychildren"></slot>        
     `;
   }
@@ -83,7 +80,7 @@ class FormManager extends LitElement  {
     });
     return result;
   }
-   submit() {
+  submit() {
     const result = this.validate();
     if (result) {
 
@@ -101,7 +98,11 @@ class FormManager extends LitElement  {
         api(this.action, this.params).then(response => {
           this.inProgress = false;
           this.dispatchEvent(new FormResponse(response))
+        }).catch((e) => { 
+          this.inProgress = false;
+          throw new Error(e);
         });
+        
       } else {
         return false;
       }

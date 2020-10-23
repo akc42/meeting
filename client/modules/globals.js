@@ -17,7 +17,84 @@
     You should have received a copy of the GNU General Public License
     along with Meeting.  If not, see <http://www.gnu.org/licenses/>.
 */
-import {ApiError} from './events.js';
+import {ApiError} from '../libs/utils.js';
+
+
+let master = false;
+
+const masterPromise = new Promise(resolve => {
+
+  let otherTabs = new Set();
+  let timer = 0.
+  const tabId = Date.now().toString();
+
+  const storageHandler = (e) => {
+    if (e.key === 'pageOpen') {
+      otherTabs.add(localStorage.getItem('pageOpen'))
+      localStorage.setItem('pageAvailable', tabId); //respond - so the ender knows he is not master.
+    }
+    if (e.key === 'pageAvailable') {
+      if (timer > 0) {
+        clearTimeout(timer);
+        master = false;
+        resolve();
+      }
+    }
+    if (e.key === 'pageClose') {
+      const closer = JSON.parse(localStorage.getItem('pageClose'));
+      if (master) {
+        otherTabs.delete(closer.id);
+      } else {
+        if (closer.master) {
+          otherTabs = new Set(closer.list); //Make a set from the list the closing master had
+          otherTabs.delete(tabId); //remove self   
+          if (closer.size === 1) {
+            //must be just me left, so I become master
+            master = true;
+
+          } else {
+            //We need to wait a random time before trying to become master, but
+            timer = setTimeout(() => {
+              timer = setTimeout(() => {
+                master = true;
+              }, 70); //wait 70 ms to see if our claim was refuted
+              localStorage.setItem('pageClaim', tabId); //try and claim storage
+            }, 70 * Math.floor((Math.random() * 40))); //wait random time between 70ms and about 3 seconds before trying to claim master
+          }
+        }
+      }
+    }
+    if (e.key === 'pageClaim') {
+      if (timer > 0) {
+        clearTimeout(timer); //someone else has claimed master ship, kill of our attempt;
+        master = false;
+      }
+    }
+  }
+
+  window.addEventListener('storage', storageHandler);
+  const unloadHandler = () => {
+    const uid = sessionStorage.getItem('uid');
+    if (uid !== null) {
+      window.fetch(`/api/leave_rooms/${uid}`, { method: 'get' });
+    }
+    localStorage.setItem('pageClose', JSON.stringify({
+      master: master,
+      id: tabId,
+      size: otherTabs.size,
+      list: Array.from(otherTabs)
+    }));
+    window.removeEventListener('storage', storageHandler);
+    window.removeEventListener('unload', unloadHandler);
+  };
+  window.addEventListener('unload', unloadHandler);
+  timer = setTimeout(() => {
+    timer = 0;  //prevent out assertion being overridden by a later try
+    master = true;
+    resolve()
+  }, 70);
+  localStorage.setItem('pageOpen', tabId);
+});
 
 const configPromise = new Promise(resolve => {
   window.fetch('/api/config', { method: 'get' }).then(response => response.text()).then(text => {
@@ -32,106 +109,32 @@ const configPromise = new Promise(resolve => {
     localStorage.setItem('clientLog', conf.clientLog);
     localStorage.setItem('version', conf.version);
     localStorage.setItem('copyrightYear', conf.copyrightYear);
-    localStorage.setItem('minPassLen', conf.minPassLen);
+    localStorage.setItem('minPassLength', conf.minPassLength);
+    localStorage.setItem('pinExpires', conf.pinExpires);
     localStorage.setItem('dwellTime', conf.dwellTime);
-
+    localStorage.setItem('webmaster', conf.webmaster);
+    localStorage.setItem('peerPort', conf.peerPort);
+    localStorage.setItem('tokenExpires', conf.tokenExpires);
     resolve();
   }).catch((e) => {
-    window.dispatchEvent(new ApiError('Config failed'))
+    window.dispatchEvent(new Error(e));
     resolve()
-  })
-
-  if (localStorage.getItem('version') !== null) { 
+  });
+  if (localStorage.getItem('version') !== null) {
     //just one of the known values - but given it set, we should have the full set so can resolve the promise - when the answers do come we just update the values we already have.
-
     resolve();
   }
-
-
 });
 
-const global = {
-  get ready() {
-    return Promise.all([configPromise,firstTabPromise]);
-  },
-  get user() {
-    const u = sessionStorage.getItem('user')
-    if (u === null) return {uid:0, global_admin: 0};
-    return JSON.parse(u);
-  },
-  set user(v) {
-    sessionStorage.setItem('user',JSON.stringify(v));
-  },
-  get cid () {
-    return parseInt(sessionStorage.getItem('cid'),10);
-  },
-  set cid(v) {
-    sessionStorage.setItem('cid',v);
-  },
-  get auid() {
-    return parseInt(sessionStorage.getItem('auid'),10)
-  },
-  set auid(v) {
-    sessionStorage.setItem('auid', v);
-  },
-  get clientLog () {
-    return localStorage.getItem('clientLog');
-  },
-  get clientLogUid () {
-    return parseInt(localStorage.getItem('clientLogUid'),10);
-  },
-  get version () {
-    return localStorage.getItem('version');
-  },
-  get copyrightYear () {
-    return localStorage.getItem('copyrightYear');
-  },
 
-  get reCaptchaKey () {
-    return localStorage.getItem('reCaptchaKey');
+
+const global = {
+  get config() {
+    return configPromise;
   },
-  get webmaster () {
-    return localStorage.getItem('webmaster');
-  },
-  get siteLogo () {
-    return localStorage.getItem('siteLogo');
-  },
-  get rateLimit () {
-    return localStorage.getItem('rateLimit');
-  },
-  get verifyExpires () {
-    return localStorage.getItem('verifyExpires');
-  },
-  get minPassLen () {
-    return parseInt(localStorage.getItem('minPassLen'),10);
-  },
-  get dwellTime () {
-    return parseInt(localStorage.getItem('dwellTime'),10);
-  },
-  get comingSoonMessage () {
-    return localStorage.getItem('comingSoonMessage');
-  },
-  get organisationName () {
-    return localStorage.getItem('organisationName');
-  },
-  get membershipRate () {
-    return localStorage.getItem('membershipRate');
-  },
-  get maxMembership () {
-    return localStorage.getItem('maxMembership');
-  },
-  get lcid() {
-    return parseInt(localStorage.getItem('lcid'));
-  }, 
-  set lcid(v) {
-    localStorage.setItem('lcid',v);
-  },
-  get luid() {
-    return parseInt(localStorage.getItem('luid'), 10);
-  },
-  set luid (v) {
-    localStorage.setItem('luid',v);
+  get master() {
+    return masterPromise.then(() => master);
   }
-}
+  }
 
 export default global;

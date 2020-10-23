@@ -18,9 +18,7 @@
     along with Football Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html, css } from '../libs/lit-element.js';
-import {cache} from '../libs/cache.js';
 
-import global from '../modules/globals.js';
 
 
 /*
@@ -43,18 +41,18 @@ class AppPage extends LitElement {
         flex:0 1 0;
       }
       img {
-        background-color: var(--color);
+        background-color: transparent;
         padding: 3px;
-        border-radius:2px;
+
       }
       #hcont {
         margin-left: 10px;
         font-weight: bold;
         display:flex;
         flex-direction: column;
-        justify-content:flex-start;
+        justify-content:space-between;
         flex: 1 1 auto;
-        align-items: center;
+        align-items: flex-end;
         min-height: 0;
       }
       header .heading {
@@ -178,7 +176,7 @@ class AppPage extends LitElement {
   render() {
     return html`
       <header>
-        <img src="${global.siteLogo}" height="64px"/>
+        <img src="/images/meeting-logo.svg" height="64px"/>
         <div id="hcont">
           <div class="heading">${this.heading}</div>
           <div class="subheading"><slot name="subheading"></slot></div>

@@ -7,7 +7,7 @@
         "--color"
       ],
       "kill_timeout": 15000,
-      "watch": ["server"],
+      "watch": ["server/**"],
       "watch_options": {
         "followSymlinks": false
       },
@@ -17,9 +17,9 @@
       "log_date_format": "YYYY-MM-DD HH:mm:ss",
       "env": {
         "DEBUG_COLORS": true,
-        "MEETING_ENABLE_EMAIL": "yes",
-        "MEETING_LOGNODATE": "yes",
-        "MEETING_DB_DIR": "/home/melindas/data"
+        "ENABLE_EMAIL": "yes",
+        "LOGNODATE": "yes",
+        "DATABASE_DB_DIR": "/home/alan/data"
       }
     }
   ]

@@ -18,8 +18,8 @@
 
 import { LitElement } from '../libs/lit-element.js';
 
-import domHost from '../modules/host.js';
-import Route from '../modules/route.js';
+import {domHost} from '../libs/utils.js';
+import Route from '../libs/route.js';
 import {PageTitle, PageData, PageClosed, PageClose, RouteChanged} from '../modules/events.js';
 
 export default class RouteManager extends  LitElement {
@@ -60,18 +60,26 @@ export default class RouteManager extends  LitElement {
           if (page !== this.page) {
             //clear before changing to another route
             this.dispatchEvent(new PageData(''));
-            // load page import on demand.
-            performance.mark('start_page_' + page);
-            this.loadPage(page);
-            if (this.constructor.titles !== undefined) {
-              const title = this.constructor.titles[page];
-              if (title !== undefined) this.dispatchEvent(new PageTitle(title));
+            // load page import on demand.            
+            if(this.loadPage(page)) {
+              this.page = page;
+              performance.mark('start_page_' + page);
+              if (this.constructor.titles !== undefined) {
+                const title = this.constructor.titles[page];
+                if (title !== undefined) this.dispatchEvent(new PageTitle(title));
+              }
+            } else {
+              this.dispatchEvent(new PageClose())
             }
-            this.page = page;
           }
         } else {
-          this.page = this.homePage();
-          this.loadPage(this.page); //if this is the first time through we may not have 
+          const page = this.homePage();
+          //if this is the first time through we may not have our home page yet
+          if (!this.loadPage(page)) { 
+            this.dispatchEvent(new PageClose());
+          } else {
+            this.page = page;
+          }
         }
       } else {
         this.page = null;
@@ -84,7 +92,7 @@ export default class RouteManager extends  LitElement {
     this.dispatchEvent(new PageData(''));
     if (e.composedPath()[0] === this) { //we don't need to cater for event retargetting
     //this event was meant for us, so lets see if we are at the home page or not
-      if (this.page.length > 0 && this.page !== this.homePage()) {
+      if (this.page !==null && this.page.length > 0 && this.page !== this.homePage()) {
         /* not at home page, so we should tell our subordinate (who
           is currently selected) that there has been a close request.
 
@@ -104,8 +112,17 @@ export default class RouteManager extends  LitElement {
           
           throw new Error('didn\'t find the element with "managed-page" attribute when closing page ' + this.page);
         }
+      } else if (this.page === null) {
+        /*
+          We tries to go to a route that wasn;t allowed before establishing any route. so establish home page.
+        */
+        window.dispatchEvent(new RouteChanged({
+          segment: this.route.segment,
+          path: '/'
+        }));
+        
       } else {
-        /* we are at home page or we've been asked to close before we even established,
+        /* we are at home page 
           either tell our host that we have therefore closed
           or if we are trying to do an explicit reroute then do if via abstract */
         const host = domHost(this);
@@ -145,7 +162,7 @@ export default class RouteManager extends  LitElement {
   // abstract (or not if we are happy with what they do)
   homePage() {return 'home';}
   closeReroute() {return false;}
-  loadPage() {return true;}
+  loadPage() {return true;} //return false if you want to say do not switch to this route.
 }
 customElements.define('route-manager', RouteManager);
 

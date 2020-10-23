@@ -18,27 +18,28 @@
     along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
 */
 import { LitElement, html } from '../libs/lit-element.js';
-import {cache} from '../libs/cache.js';
 
-import Debug from '../modules/debug.js';
+import '/api/user.js';  //create user cookie
+
 
 import './error-manager.js';
-import './session-manager.js';
+import './page-manager.js';
 
 import '../elements/waiting-indicator.js';
 
+import Debug from '../modules/debug.js';
 const logger = Debug('logger')
 
 /*
-     <fm-app>: The controlling app
+     <main-app>: The controlling app
 */
 class MainApp extends LitElement {
 
   static get properties() {
     return {
-      permissions: {type: Object},
+
       serverError: {type: Boolean},
-      authorised: {type: Boolean}
+
     };
   }
   constructor() {
@@ -67,7 +68,7 @@ class MainApp extends LitElement {
           width: 100vh;
           margin: 0;
         }
-        session-manager[hidden], page-manager[hidden], error-manager[hidden] {
+        page-manager[hidden], error-manager[hidden] {
           display: none !important;
         }
       </style>
@@ -76,44 +77,17 @@ class MainApp extends LitElement {
         <error-manager 
           ?hidden=${!this.serverError} 
           @error-status=${this._errorChanged} ></error-manager>    
-        <session-manager 
-          ?hidden=${this.authorised || this.serverError} 
-          id="session" 
-      
-          @permissions-changed=${this.__permissionsChanged}></session-manager>
-        ${cache(this.authorised ? html`
-          <page-manager
-            id="pages"
-            .permissions=${this.permissions}
-            ?hidden=${this.serverError}
-            @permissions-changed=${this._permissionsChanged}></page-manager>      
-        `:'')}
+        <page-manager
+          id="pages"
+          ?hidden=${this.serverError}></page-manager>      
       </section>
     `;
   }
-  _permissionsChanged(e) {
-    e.stopProgation();
-    this.permissions = e.changed;
-    this.authorised = this.permissions.rid > 0 || this.permissions.hid > 0;
-    if (this.authorised) {
-      import('./page-manager.js');
-    }
-  }
+
   _errorChanged(e) {
     e.stopPropagation();
     this.serverError = (e.status !== 'reset');
   }
-  _hostChanged(e) {
-    e.stopPropagation();
-    this.isHost = e.changed;
-  }
-  _pinAuthorised(e) {
-    e.stopPropagation();
-    this.rid = e.rid;
-  }
-  _roomLeave(e) {
-    e.stopPropagation()
-    this.router.params = {page: ''};
-  }
+
 }
 customElements.define('main-app', MainApp);

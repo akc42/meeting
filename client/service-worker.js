@@ -2,20 +2,20 @@
 @licence
     Copyright (c) 2020 Alan Chandler, all rights reserved
 
-    This file is part of Football Mobile.
+    This file is part of Meeting.
 
-    Football-Mobile is free software: you can redistribute it and/or modify
+    Meeting is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    Football-Mobile is distributed in the hope that it will be useful,
+    Meeting is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with Football-Mobile.  If not, see <http://www.gnu.org/licenses/>.
+    along with Meeting.  If not, see <http://www.gnu.org/licenses/>.
 */
 const version = 'fm-v1'
 const api = /^\/api\/(status)|((\w+)\/(volume|timer|done|log|warn|token|((\S+)\/(take|start|renew|release|stop))))$/i;
@@ -23,10 +23,9 @@ self.addEventListener('install', (event) =>
   event.waitUntil(caches.open(version).then( cache => cache.addAll([
     '/',
     '/index.html',
-    '/images/light-aluminium.png',
-    '/images/football-logo-32x32.png',
-    '/images/football-logo-144x144.png',
-    '/images/football-logo.svg',
+    '/images/meeting-logo-32x32.png',
+    '/images/meeting-logo-144x144.png',
+    '/images/meeting-logo.svg',
     '/manifest.json',
     '/favicon.ico',
     '/robots.txt',

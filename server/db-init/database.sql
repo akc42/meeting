@@ -22,50 +22,44 @@
 
 --
 --  NOTE: There are a number of settings in the Settings table that are just example values.  There is a list at the end of this file that
---        you MUST change, but the recommendation is to review off of them, and the settings in the style table to check they meet your needs.
+--        you MUST change, but the recommendation is to review all of them, and the settings in the style table to check they meet your needs.
 
 
 BEGIN EXCLUSIVE;
 CREATE TABLE user (
-  uid integer PRIMARY KEY,
-  name character varying,
+  name character varying COLLATE NOCASE PRIMARY KEY,
   password character varying, --hashed version of password
-  email character varying, --email
-  pin integer, --short term password
+  email character varying COLLATE NOCASE, --email
+  pin character varying, --short term password (string of random 4 digit created)
   pin_expiry integer, --expiry date of short term password
   admin boolean NOT NULL DEFAULT 0
 );
 
 
 CREATE TABLE room (
-  rid integer PRIMARY KEY,  --room id
-  name character varying, --friendly name
+  name character varying COLLATE NOCASE, --friendly name
   description character varying, -- Reason for room's existence
   no_host boolean NOT NULL DEFAULT 0, --if set host not required
   open_time integer, --time room is due to open (if not null). (only real host may enter before then)
+  repeat smallint NOT NULL DEFAULT 0, --repeat frequency 0 = no repeat, 1 = daily, 2 = weekly 3 == fortnight 4 = monthly (relative to start), 5 = monthly (relative to end)
   open boolean NOT NULL DEFAULT 0, --room is open (overrides open_time)
-  pin integer, --a 4 digit pin - used as password for room
+  pin character varying, --a (4 digit pin) - used as password for room
   max_present integer NOT NULL DEFAULT 2, --number, including host allowed in room (initially always 2, but may change in future)
-  present integer, --number in room (excluding host)
-  host_here boolean, -- if host is present
-  host integer NOT NULL REFERENCES user(uid) ON UPDATE CASCADE ON DELETE CASCADE --owner of room
+  guest_uid character varying, --uid from meet_user cookie of guest (or second guest in no host case)
+  host_uid character varying, --uid from meet_user cookie of host (if in room) or first guest of no_host set
+  host character varying COLLATE NOCASE NOT NULL REFERENCES user(name) ON UPDATE CASCADE ON DELETE CASCADE, --owner of room
+  PRIMARY KEY (name, host)
 );
 
-CREATE TABLE guest_visit (
-  uid character varying NOT NULL, --uid of guest which is created on first visit
-  rid integer, --room visited
-  joined bigint NOT NULL DEFAULT (strftime('%s','now')),  --date joined the room
-  left bigint NOT NULL DEFAULT 0 --date left room (0 not left yet)
-);
+
 
 CREATE TABLE failed (
   fid integer PRIMARY KEY, -- auto increment key
-  uid character varying NOT NULL, --
-  ip character varying NOT NULL,
-  name character varying,
-  date bigint NOT NULL DEFAULT (strftime('%s','now')),
-  corrupt boolean NOT NULL DEFAULT 0,
-  suspect boolean NOT NULL DEFAULT 0
+  uid character varying NOT NULL, --uid of guest
+  ip character varying NOT NULL, --ip address
+  name character varying COLLATE NOCASE, --who
+  date bigint NOT NULL DEFAULT (strftime('%s','now')), --date and time of failure
+  suspect boolean NOT NULL DEFAULT 0 -- set if more than 10 fails in the last week and now another one
 );
 
 CREATE TABLE settings (
@@ -79,7 +73,6 @@ CREATE TABLE settings (
 
 -- INDEXES --------------------------------------------------------------
 
-CREATE UNIQUE INDEX user_name_idx ON user(name);
 
 CREATE INDEX room_name_idx ON room(name);
 CREATE INDEX room_home_idx ON room(host);
@@ -94,7 +87,7 @@ CREATE INDEX failed_uid_idx ON failed(uid);
 INSERT INTO settings (name,value) VALUES('version',1); --version of this configuration
 -- values for client config
 
-INSERT INTO settings (name,value) VALUES('client_log',''); --if none empty string should specify colon separated function areas client should log or 'all' for every thing.
+INSERT INTO settings (name,value) VALUES('client_log','logger'); --if none empty string should specify colon separated function areas client should log or 'all' for every thing.
 
 INSERT INTO settings (name,value) VALUES('min_pass_len', 6); --minimum password length
 INSERT INTO settings (name,value) VALUES('dwell_time', 2000); --time to elapse before new urls get to be pushed to the history stack
@@ -103,11 +96,24 @@ INSERT INTO settings (name,value) VALUES('meeting_host', 'meeting_host'); -- nam
 INSERT INTO settings (name,value) VALUES('token_key', 'newTokenKey'); --key used to encrypt/decrypt cookie token (new value set during db create)
 INSERT INTO settings (name,value) VALUES('token_expires', 720); --hours until expire for standard logged on token
 INSERT INTO settings (name,value) VALUES('pin_expires', 24); --hours until expire for temporary login pins (forgotten passwords)
-INSERt INTO user (uid,name,pin,admin) VALUES(1,'admin',1234,1); --make admin user with 1234 temporary password
+INSERT INTO settings (name,value) VALUES('webmaster', 'developer@example.com');  --site web master NOTE change once database created to correct person
+INSERT INTO settings (name,value) VALUES('server_port', 2050); --api server port (needs to match what nginx conf says);
+INSERT INTO settings (name,value) VALUES('peer_port', 2051); -- peer server port
+INSERT INTO user (name,pin,admin) VALUES('admin','1234',1); --make  first user name admin with 1234 temporary password
+
+--------------------------------------------------------------
+--BEFORE USE RECOMMEND 
+--   either
+--     Altering this file to change the web master e-mail address and the name and pin of the first user
+--   or 
+--     immediately after creating database manually (use command line sqlite3 or other tool) to change 
+--     web master e-mail address, and the name, email address and pin of the first user
+----------------------------------------------------------------------------------
 
 COMMIT;
 
 VACUUM;
 -- set it all up as Write Ahead Log for max performance and minimum contention with other users.
+PRAGMA foreign_keys = ON;
 PRAGMA journal_mode=WAL;
 

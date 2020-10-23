@@ -24,7 +24,7 @@
     <meta name="viewport"
       content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes, shrink-to-fit=no">
 
-    <title>Football Mobile</title>
+    <title>Meeting</title>
     <!-- because this can be served from anywhere base allows us to use relative urls -->
     <base href="/">
     <link rel="shortcut icon" sizes="32x32" href="images/meeting-logo-32x32.png">
@@ -68,12 +68,11 @@
     </script>
     <script src="/libs/webcomponents-loader.js"></script>
     <script type="module" src="/libs/lit-element.js"></script>
-
     <script type="module" src="/pages/main-app.js"></script> 
     <script type="module" src="/pages/error-manager.js"></script>
-    <script type="module" src="/pages/session-manager.js"></script>
     <script type="module" src="/pages/page-manager.js"></script>
-    <script type="module" src="/modules/api.js"></script>
+    <script type="module" src="libs/utils.js"></script>
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
     <style>
       html {
         background: #ffffff;
@@ -138,6 +137,6 @@
       window.performance.mark('index_loaded');
       window.performance.measure('index_loaded','navigationStart','index_loaded');
     </script>
-
+    
   </body>
 </html>

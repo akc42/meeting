@@ -28,7 +28,7 @@
   --dialog-color: white;
   --cancel-color: lavender;
   --cancel-contrast-color: navy;
-  --shadow-color: rgba(255,255,255,0.5);
+  --shadow-color: rgba(32, 32, 32, 0.5);
   --link-color: blue;
   --error-color: var(--secondary-contrast-color);
   --error-text-color: var(--secondary-color);

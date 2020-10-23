@@ -21,7 +21,19 @@
 
 import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
-import domHost from '../modules/host.js';
+import {domHost} from '../libs/utils.js';
+export class WaitRequest extends Event {
+  /*
+     The following are the fields provided by this event
+
+     wait: true or false, depending with wait on or off.
+  */
+
+  constructor(wait) {
+    super('wait-request', { composed: true, bubbles: true });
+    this.wait = wait;
+  }
+};
 
 class WaitingIndicator extends LitElement {
   static get styles () {

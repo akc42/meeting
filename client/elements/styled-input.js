@@ -71,7 +71,6 @@ class StyledInput extends LitElement {
 
   static get properties() {
     return {
-      combo: {type: Boolean},
       label: {type: String},
       disabled: {type: Boolean},
       invalid: {type: Boolean, reflect: true},
@@ -83,7 +82,7 @@ class StyledInput extends LitElement {
       autocomplete: {type: String},
       autofocus: {type: Boolean},
       form: {type: String},
-      items: {type: Array}, //can either be array of strings or array of objects with {id: value, name: label}
+      items: {type: Array}, //can either be array of strings or array of objects with {id: value, name: label} only defined for datalist
       name: {type: String},
       readonly: {type: Boolean},
       required: {type: Boolean},
@@ -104,7 +103,6 @@ class StyledInput extends LitElement {
   }
   constructor() {
     super();
-    this.combo = false;
     this.items = [];
     this.label = '';
     this.name = '';
@@ -153,8 +151,6 @@ class StyledInput extends LitElement {
     super.updated(changed);
   }
   render() {
-    const value = (this.combo && this.items.length > 0 && typeof this.items[0] !== 'string' ?
-      this.items.find(i => i.id === this.value).name : this.value) || '';
     return html`
       <div class="labelcontainer">
         <label id="label" for="input" >${this.label}</label>
@@ -181,9 +177,9 @@ class StyledInput extends LitElement {
           cols=${ifDefined(this.cols)}
           rows=${ifDefined(this.rows)}
           wrap=${ifDefined(this.wrap)}
-          .value=${value}
+          .value=${this.value}
           @input=${this._inputChanged}
-          @blur=${this._blur}>${value}</textarea>
+          @blur=${this._blur}>${this.value}</textarea>
       ` : html`
         <input
           id="input"
@@ -196,22 +192,22 @@ class StyledInput extends LitElement {
           autocomplete=${ifDefined(this.autocomplete)}
           ?autofocus=${this.autofocus}
           form=${ifDefined(this.form)}
-          list=${ifDefined(this.list)}
+          list=${ifDefined(this.items.length > 0 ? 'dropdown' : undefined)}
           name=${this.name}
           maxlength="${ifDefined(this.maxlength)}"
           minlength="${ifDefined(this.minlength)}"
           ?readonly=${this.readonly}
           ?required=${this._required}
-          .value=${value}
+          .value=${this.value}
           max=${ifDefined(this.max)}
           min=${ifDefined(this.min)}
           step=${ifDefined(this.step)}
           @input=${this._inputChanged}
           @blur=${this._blur}
         />
-        ${this.combo ? html`
+        ${this.items.length > 0 ? html`
           <datalist id="dropdown">
-            ${this.items.map(item => html`<option >${typeof item === 'string' ? item : item.name}</option>`)}
+            ${this.items.map(item => html`<option value="${typeof item === 'string'? item: item.id}">${typeof item === 'string' ? '': item.name}</option>`)}
           </datalist>`:''}
         `}
     `;

@@ -21,10 +21,11 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 import {classMap} from '../libs/class-map.js';
 import {guard} from '../libs/guard.js';
+import { domHost } from '../libs/utils.js';
 
 import './dialog-box.js';
 
-import domHost from '../modules/host.js';
+
 import button from '../styles/button.js';
 
 import { ValueChanged, CalendarReply } from '../modules/events.js';
