@@ -45,8 +45,10 @@ CREATE TABLE room (
   open boolean NOT NULL DEFAULT 0, --room is open (overrides open_time)
   pin character varying, --a (4 digit pin) - used as password for room
   max_present integer NOT NULL DEFAULT 2, --number, including host allowed in room (initially always 2, but may change in future)
-  guest_uid character varying, --uid from meet_user cookie of guest (or second guest in no host case)
-  host_uid character varying, --uid from meet_user cookie of host (if in room) or first guest of no_host set
+  guest_uid character varying, --uid from peerjs of guest (or second guest in no host case)
+  guest_message character varying, --message left by guest for host
+  host_uid character varying, --uid from peerjs of host (if in room) or first guest of no_host set
+  host_message character varying, --message left by host for guest.
   host character varying COLLATE NOCASE NOT NULL REFERENCES user(name) ON UPDATE CASCADE ON DELETE CASCADE, --owner of room
   PRIMARY KEY (name, host)
 );
