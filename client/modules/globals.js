@@ -17,84 +17,92 @@
     You should have received a copy of the GNU General Public License
     along with Meeting.  If not, see <http://www.gnu.org/licenses/>.
 */
-import {ApiError} from '../libs/utils.js';
+import {ApiError, generateUri} from '../libs/utils.js';
+import { MasterClose } from './events.js';
+
+
+
 
 
 let master = false;
+let masterResolver;
+let masterPromise = new Promise(resolve => masterResolver = resolve);
+  
 
-const masterPromise = new Promise(resolve => {
-
-  let otherTabs = new Set();
-  let timer = 0.
-  const tabId = Date.now().toString();
-
-  const storageHandler = (e) => {
-    if (e.key === 'pageOpen') {
-      otherTabs.add(localStorage.getItem('pageOpen'))
-      localStorage.setItem('pageAvailable', tabId); //respond - so the ender knows he is not master.
+let otherTabs = new Set();
+let timer = 0.
+const tabId = Date.now().toString();
+const storageHandler = (e) => {
+  if (e.key === 'pageOpen') {
+    otherTabs.add(localStorage.getItem('pageOpen'))
+    localStorage.setItem('pageAvailable', tabId); //respond - so the ender knows he is not master.
+  }
+  if (e.key === 'pageAvailable') {
+    if (timer > 0) {
+      clearTimeout(timer);
+      master = false;
+      masterResolver(false);
     }
-    if (e.key === 'pageAvailable') {
-      if (timer > 0) {
-        clearTimeout(timer);
-        master = false;
-        resolve();
-      }
-    }
-    if (e.key === 'pageClose') {
-      const closer = JSON.parse(localStorage.getItem('pageClose'));
-      if (master) {
-        otherTabs.delete(closer.id);
-      } else {
-        if (closer.master) {
-          otherTabs = new Set(closer.list); //Make a set from the list the closing master had
-          otherTabs.delete(tabId); //remove self   
-          if (closer.size === 1) {
-            //must be just me left, so I become master
-            master = true;
+  }
+  if (e.key === 'pageClose') {
+    const closer = JSON.parse(localStorage.getItem('pageClose'));
+    if (master) {
+      otherTabs.delete(closer.id);
+    } else {
+      if (closer.master) {
+        otherTabs = new Set(closer.list); //Make a set from the list the closing master had
+        otherTabs.delete(tabId); //remove self  
+        masterPromise = new Promise(resolve => masterResolver = resolve);
 
-          } else {
-            //We need to wait a random time before trying to become master, but
+        if (closer.size === 1) {
+          //must be just me left, so I become master
+          master = true;
+          masterResolver(true);
+        } else {
+          //We need to wait a random time before trying to become master, but
+          timer = setTimeout(() => {
             timer = setTimeout(() => {
-              timer = setTimeout(() => {
-                master = true;
-              }, 70); //wait 70 ms to see if our claim was refuted
-              localStorage.setItem('pageClaim', tabId); //try and claim storage
-            }, 70 * Math.floor((Math.random() * 40))); //wait random time between 70ms and about 3 seconds before trying to claim master
-          }
+              master = true;
+              masterResolver(true);
+            }, 70); //wait 70 ms to see if our claim was refuted
+            localStorage.setItem('pageClaim', tabId); //try and claim storage
+          }, 70 * Math.floor((Math.random() * 40))); //wait random time between 70ms and about 3 seconds before trying to claim master
         }
-      }
-    }
-    if (e.key === 'pageClaim') {
-      if (timer > 0) {
-        clearTimeout(timer); //someone else has claimed master ship, kill of our attempt;
-        master = false;
+        window.dispatchEvent(new MasterClose());
       }
     }
   }
-
-  window.addEventListener('storage', storageHandler);
-  const unloadHandler = () => {
-    const uid = sessionStorage.getItem('uid');
-    if (uid !== null) {
-      window.fetch(`/api/leave_rooms/${uid}`, { method: 'get' });
+  if (e.key === 'pageClaim') {
+    if (timer > 0) {
+      clearTimeout(timer); //someone else has claimed master ship, kill of our attempt;
+      master = false;
+      masterResolver(false);
     }
-    localStorage.setItem('pageClose', JSON.stringify({
-      master: master,
-      id: tabId,
-      size: otherTabs.size,
-      list: Array.from(otherTabs)
-    }));
-    window.removeEventListener('storage', storageHandler);
-    window.removeEventListener('unload', unloadHandler);
-  };
-  window.addEventListener('unload', unloadHandler);
-  timer = setTimeout(() => {
-    timer = 0;  //prevent out assertion being overridden by a later try
-    master = true;
-    resolve()
-  }, 70);
-  localStorage.setItem('pageOpen', tabId);
-});
+  }
+}
+
+window.addEventListener('storage', storageHandler);
+const unloadHandler = () => {
+  const uid = sessionStorage.getItem('uid');
+  if (uid !== null) {
+    window.fetch(generateUri('/api/room/leave_all',{uid: uid}), { method: 'get' });
+  }
+  localStorage.setItem('pageClose', JSON.stringify({
+    master: master,
+    id: tabId,
+    size: otherTabs.size,
+    list: Array.from(otherTabs)
+  }));
+  window.removeEventListener('storage', storageHandler);
+  window.removeEventListener('unload', unloadHandler);
+};
+window.addEventListener('unload', unloadHandler);
+timer = setTimeout(() => {
+  timer = 0;  //prevent out assertion being overridden by a later try
+  master = true;
+  masterResolver(true);
+}, 70);
+localStorage.setItem('pageOpen', tabId);
 
 const configPromise = new Promise(resolve => {
   window.fetch('/api/config', { method: 'get' }).then(response => response.text()).then(text => {
@@ -133,8 +141,8 @@ const global = {
     return configPromise;
   },
   get master() {
-    return masterPromise.then(() => master);
+    return masterPromise;
   }
-  }
+}
 
 export default global;

@@ -312,6 +312,16 @@ export class KeyUpdated extends Event {
   }
 };
 
+export class MasterClose extends Event {
+  /*
+     This event is fired on the window when a master tab closes.  Its for the home page to re check the master
+     promise to see if made it.
+
+  */
+  constructor() {
+    super('master-close',{composed: true, bubbles: true});
+  }
+};
 
 export class OverlayClosed  extends Event {
   
