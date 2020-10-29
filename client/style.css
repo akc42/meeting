@@ -47,11 +47,17 @@
   --item-not-present: orangered;
   --create-item-color: lawngreen;
 
+  --home-color: green;
+  --edit-color: orange;
+  --admin-color: purple;
+  --logoff-color: black;
+
+
   
 
 
   --email-input-length: 240px;
-  --admin-name-length: 240px;
+  --admin-name-length: 120px;
   --name-input-length: 120px; 
   --pw-input-length: 100px; 
   --text-input-width: 300px;
