@@ -57,26 +57,34 @@ export class PageManager extends RouteManager {
 
   connectedCallback() {
     super.connectedCallback();
-    global.config.then(() => {
-      const hostTester = new RegExp(`^(.*; +)?${localStorage.getItem('meetingHost')}=([^;]+)(.*)?$`);
-      const matches = document.cookie.match(hostTester);
-      if (matches) {
-        //we do have a hoster cookie, so lets validate it
-        api('user/check_hoster').then(response => {
-          if (response.hoster !== undefined) {
-            this.hoster = response.hoster.name;
-            this.isAdmin = response.hoster.admin;
-          } else {
-            this.hoster = '';
-            this.isAdmin = false;
-            document.cookie = localStorage.getItem('meetingHost') + '=; path=/; expires = Thu, 01 Jan 1970 00:00:01 GMT';  //clear cookie
-          }
-        });
-      }
+    const configPromise = new Promise(resolve => {
+      global.config.then(() => {
+        console.log('check if I am logged in')
+        const hostTester = new RegExp(`^(.*; +)?${localStorage.getItem('meetingHost')}=([^;]+)(.*)?$`);
+        const matches = document.cookie.match(hostTester);
+        if (matches) {
+          //we do have a hoster cookie, so lets validate it
+          api('user/check_hoster').then(response => {
+            if (response.hoster !== undefined) {
+              this.hoster = response.hoster.name;
+              this.isAdmin = response.hoster.admin;
+              sessionStorage.setItem('myName', this.hoster);
+            } else {
+              this.hoster = '';
+              this.isAdmin = false;
+              document.cookie = localStorage.getItem('meetingHost') + '=; path=/; expires = Thu, 01 Jan 1970 00:00:01 GMT';  //clear cookie
+            }
+            resolve();
+          });
+        } else {
+          this.hoster = '';
+          resolve();
+        }
+      });
     });
 
     connectUrl(route => {
-      global.config.then(() => { //make sure we have the config before proceeding further
+      configPromise.then(() => { //make sure we have the config before proceeding further
         this.route = route;
       });
     });
@@ -91,12 +99,20 @@ export class PageManager extends RouteManager {
 
       <delete-dialog ></delete-dialog>
       ${cache({
-        admin: html`<admin-page managed-page .route=${this.subRoute} .name=${this.hoster} ?isAdmin=${this.isAdmin}></admin-page>`,
+        admin: html`<admin-page managed-page 
+          .route=${this.subRoute} 
+          .hoster=${this.hoster}></admin-page>`,
         forgotten: html`<forgotten-page managed-page></forgotten-page>`,
         home:html`<home-page managed-page .hoster=${this.hoster}></home-page>`,
-        host: html`<host-page managed-page .route=${this.subRoute} .name=${this.hoster} ?admin=${this.isAdmin} @auth-changed=${this._authChanged}></host-page>`,
+        host: html`<host-page 
+                      managed-page 
+                      .route=${this.subRoute} 
+                      .hoster=${this.hoster} 
+                      ?admin=${this.isAdmin} 
+                      @auth-changed=${this._authChanged}></host-page>`,
         login: html`<login-page managed-page @auth-changed=${this._authChanged}></login-page>`,
-        room: html`<room-page managed-page .hoster=${this.hoster} .roomRoute=${this.subRoute}></room-page>`
+        pin: html`<pin-page managed-page .hoster=${this.hoster} .route=${this.subRoute}></pin-page>`,
+        room: html`<room-page managed-page .hoster=${this.hoster} .route=${this.subRoute}></room-page>`
       }[this.page])}
 
     `;
@@ -108,9 +124,12 @@ export class PageManager extends RouteManager {
       case 'host':
         if(this.hoster.length === 0) return false;
       case 'forgotten':
-      case 'home':
       case 'login':
+      case 'pin':
       case 'room':
+        const name = sessionStorage.getItem('myName');
+        if (!name) return false;  //must have collected a name to proceed
+      case 'home':
         break;
       default:
         return false;
