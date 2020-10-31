@@ -83,10 +83,6 @@ const storageHandler = (e) => {
 
 window.addEventListener('storage', storageHandler);
 const unloadHandler = () => {
-  const uid = sessionStorage.getItem('uid');
-  if (uid !== null) {
-    window.fetch(generateUri('/api/room/leave_all',{uid: uid}), { method: 'get' });
-  }
   localStorage.setItem('pageClose', JSON.stringify({
     master: master,
     id: tabId,
@@ -94,7 +90,7 @@ const unloadHandler = () => {
     list: Array.from(otherTabs)
   }));
   window.removeEventListener('storage', storageHandler);
-  window.removeEventListener('unload', unloadHandler);
+  window.removeEventListener('beforeunload', unloadHandler);
 };
 window.addEventListener('unload', unloadHandler);
 timer = setTimeout(() => {

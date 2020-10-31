@@ -25,7 +25,8 @@
   const debugapi = require('debug')('meeting:api');
   const debuguser = require('debug')('meeting:user');
   const debugauth = require('debug')('meeting:auth');
-
+  const debugpeer = require('debug')('meeting:peer');
+  const url = require('url');
   const path = require('path');
   require('dotenv').config({path: path.resolve(__dirname,'db-init','meeting.env')});
 
@@ -46,6 +47,7 @@
   const finalhandler = require('finalhandler');
 
   const bcrypt = require('bcrypt');
+  const sendMessage = require('utils/sendmessage');
 
   const serverConfig = {};
   
@@ -155,6 +157,7 @@
       const router = Router(routerOpts);  //create a router
       const api = Router(routerOpts);
       const usr = Router(routerOpts);
+      const room = Router(routerOpts);
       const hoster = Router(routerOpts);
       const admin = Router(routerOpts);
     
@@ -260,23 +263,23 @@ document.cookie = '${serverConfig.meetingUser}=${token}; expires=0; Path=/';
         }
       });
 
-      /*
-        one more get request - a last ditch effort by closing
-         tabs to leave all rooms. NOTE uid is what is received from Peerjs
-      */
 
-      debug('set up leave_rooms call')
-      api.get('/leave_rooms/:uid', (req,res) => {
-        debugapi('leave_rooms call received for uid ', req.uid);
-        const clearGuest = db.prepare('UPDATE room SET guest_uid = NULL WHERE guest_uid = ?');
-        const clearHost = db.prepare('UPDATE room SET host_uid WHERE host_uid = ?');
-        db.transaction(() => {
-          clearGuest.run(req.uid);
-          clearHost.run(req.uid);
-        })();
-        debugapi('leave_rooms done');
-        res.end();
-      });
+      /*
+        Room routes are all messages about change of room status - which will ultimately provide server side
+        event to all the subscribed clients.
+      */      
+      debug('setting up room routes');
+      api.use('/room', room);
+      const subscribers = {};
+      const rooms = loadServers(__dirname, 'room');
+      for (const r in rooms) {
+        debugapi(`Setting up /api/room/${r} route`);
+        room.get(`/${r}`, (req, res) => {
+          const params = url.parse(req.url, true).query;
+          rooms[r](params, subscribers, req, res)
+        });
+      }
+
 
       /*
         We now only support posts request with json encoded bodies so we parse the body
@@ -399,11 +402,36 @@ document.cookie = '${serverConfig.meetingUser}=${token}; expires=0; Path=/';
       debug('Create the Peer Server');
       peerServer = PeerServer({
         port: serverConfig.peerPort,
-        path: '/peerjs',
-        proxied: true
-
+        host: '/',
+        ssl: {
+          key: fs.readFileSync(path.resolve(__dirname, '../keys', 'meetdev-privkey.pem')),
+          cert: fs.readFileSync(path.resolve(__dirname, '../keys', 'meetdev-cert.pem'))
+        }
       }, () => {
-        logger('app','peerserver started');
+          logger('app', `Peerserver started on Port ${serverConfig.peerPort}`);
+      });
+      peerServer.on('connection', client => {
+        debugpeer('client connected', client.id);
+        subscribers[client.id] = ''
+      });
+      peerServer.on('disconnect', client => {
+        debugpeer('client disconnected', client.id);
+        const clearGuest = db.prepare('UPDATE room SET guest_uid = NULL WHERE guest_uid = ?');
+        const clearHost = db.prepare('UPDATE room SET host_uid WHERE host_uid = ?');
+        db.transaction(() => {
+          clearGuest.run(client.id);
+          clearHost.run(client.id);
+        })();
+
+
+
+
+        if (subscribers[client.id]) delete subscribers[client.id];
+        for(const id in subscribers) {
+          if (typeof id !== 'string') {
+            sendMessage(subscriber[id], 'disconnect', client.id);
+          }
+        } 
       });
 
     } catch(e) {

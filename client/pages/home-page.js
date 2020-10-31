@@ -26,6 +26,7 @@ import global from '../modules/globals.js';
 import '../elements/app-page.js';
 import '../elements/styled-input.js';
 import '../elements/material-icon.js';
+import '../elements/check-box.js';
 
 import button from '../styles/button.js'
 
@@ -44,11 +45,11 @@ class HomePage extends LitElement {
   static get properties() {
     return {
       master: {type: Boolean},  //If I am the master tab, I am allowed to log in
-      hoster: {type: String},
-      iamhost: {type: Boolean},
+      hoster: {type: String}, //If not zero I am logged in currently
+      iamhost: {type: Boolean}, //Set if I am to be the host
       name:{type: String}, //name by which user will be known as in chat room
       roomName: {type: String},
-      host: {type: String},
+      host: {type: String}, //Name of host of room
       rooms: {type: Array},
       hosts: {type: Array},
       notFound: {type: Boolean} //true if after checking for room it was not found.
@@ -58,6 +59,7 @@ class HomePage extends LitElement {
     super();
     this.name = '';
     this.hoster = '';
+    this.master = false;
     this.iamhost = false;
     this.roomName = '';
     this.host = '';
@@ -65,6 +67,7 @@ class HomePage extends LitElement {
     this.hosts = [];
     this.noPin = false;
     this.roomChecked = false;
+    this._masterClosed = this._masterClosed.bind(this);
   }
   connectedCallback() {
     super.connectedCallback();
@@ -73,20 +76,30 @@ class HomePage extends LitElement {
     if (rooms !== null) {
       this.rooms = JSON.parse(rooms);
     }
-    const name = localStorage.getItem('lastName');
-    if (name) {
-      this.name = name;
+    if (this.hoster.length > 0) {
+      this.name = this.hoster;
+    } else {
+      const name = localStorage.getItem('lastName');
+      if (name) this.name = name;
     } 
     this.roomChecked = false;
+    window.addEventListener('master-close', this._masterClosed);
 
   }
   disconnectedCallback() {
     super.disconnectedCallback();
+    window.removeEventListener('master-close', this._masterClosed);
   }
   update(changed) {
-    if( changed.has('hoster') && this.hoster.length > 0) {
-      this.name = this.hoster;   //if we change hoster, then we can use that as our name.
-      this.iamhost = true; //and assume initially that I will host as well.
+    if (changed.has('hoster') && this.hoster.length > 0 ) this.name = this.hoster;
+    if( changed.has('hoster') || changed.has('master')) {
+      if (this.master && this.hoster.length > 0 ) {
+        this.iamhost = true; //and assume initially that I will host as well.
+        this.host = this.hoster;
+      } else {
+        this.iamhost = false;
+      }
+
     } 
     super.update(changed);
   }
@@ -117,8 +130,8 @@ class HomePage extends LitElement {
             .value=${this.name} 
             @value-changed=${this._nameChanged}
             @blur=${this._saveName}></styled-input>
-          ${cache(this.hoster.length > 0 ? html`
-            <check-box name="host" value=${this.iamhost} @value-changed=${this._amHost}>I am the host</check-box>
+          ${cache(this.master && this.hoster.length > 0 ? html`
+            <check-box name="host" .value=${this.iamhost} @value-changed=${this._amHost}>I am the host</check-box>
           `:'')}  
           ${cache(this.hosts.length > 0 ? html`
             <styled-input
@@ -183,7 +196,7 @@ class HomePage extends LitElement {
         } else if (response.rooms.length === 1) {
           this.hosts = [];  //no not need to worry about hosts
           this.noPin = response.rooms[0].hasPin === 0;
-          this.host = resppnse.rooms[0].host;
+          this.host = response.rooms[0].host;
           this.roomChecked = true;
         } else {
           this.hosts = rooms.map(r => r.host);
@@ -202,13 +215,20 @@ class HomePage extends LitElement {
     e.stopPropagation();
     switchPath('/host');
   }
+  _masterClosed(e) {
+    e.stopPropagation();
+    global.master.then(master => {
+      this.master = master;
+      console.log('Check if master after window event, result', master);
+    });
+  }
   _meeting(e) {
     e.stopPropagation();
     if (this.roomChecked) {
       if (this.noPin || this.iamhost) {
-        switchPath(`/room/${this.host}/${this.roomName}/${this.name}/main`);
+        switchPath(`/room/${this.host}/${this.roomName}`);
       } else {
-        switchPath(`/room/${this.host}/${this.roomName}/${this.name}`);
+        switchPath(`/pin/${this.host}/${this.roomName}`);
       }
     } else {
       const host = this.shadowRoot.querySelector('#host');
@@ -231,7 +251,7 @@ class HomePage extends LitElement {
   }
   _saveName(e) {
     e.stopPropagation();
-    localStorage.setItem('lastName', this.name);
+    sessionStorage.setItem('myName', this.name);
   }
 }
 customElements.define('home-page', HomePage);

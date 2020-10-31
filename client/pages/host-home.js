@@ -21,6 +21,7 @@ import { LitElement, html, css } from '../libs/lit-element.js';
 import {cache} from '../libs/cache.js';
 
 import '../elements/app-page.js';
+import '../elements/styled-input.js';
 
 import page from '../styles/page.js';
 import { switchPath } from '../libs/utils.js';
@@ -50,7 +51,8 @@ class HostHome extends LitElement {
     return {
       name: {type: String},
       rooms: {type: Array},
-      admin: {type: Boolean}
+      admin: {type: Boolean},
+      newroom: {type: String}
     };
   }
   constructor() {
@@ -58,6 +60,7 @@ class HostHome extends LitElement {
     this.name='';
     this.rooms = [];
     this.admin = false;
+    this,
     this._deleteReply = this._deleteReply.bind(this);
 
   }
@@ -85,16 +88,20 @@ class HostHome extends LitElement {
           flex-direction: row-reverse;
         }
         #menu {
-          margin-left: auto;
           flex: 1;
+          border: none;
+          padding: 5px;
+          border-radius:5px;
+          box-shadow: 2px 2px 5px 4px var(--shadow-color);
         }
 
         .menuitem {
           display: flex;
           flex-direction: row;
-          width: 170px;
+          width: 120px;
           margin: 5px;
           cursor: pointer;
+          border-bottom: 1px dotted var(--menu-separator);
         }
         .menuitem > material-icon {
           align-self: flex-start;
@@ -103,28 +110,60 @@ class HostHome extends LitElement {
           margin-left: 10px;
         }
         .scrollable {
-          flex: 1;
+          flex: 3;
+          margin-right: 10px;
         }
+        .room:nth-child(odd) {
+          background-color: #b6eaf7;
+        }
+
         .room {
           display: flex;
           flex-direction: row;
+          border-radius: 5px;
         }
 
         .room > span {
           flex: 1;
+          width: var(--name-input-width);
+          margin-right: auto;
+          cursor: pointer;
+        }
+        .home {
+          color: var(--home-color);
+        }
+        .edit {
+          color: var(--edit-color);
+        }
+        .admin {
+          color: var(--admin-color);
+        }
+        #newroom {
+          --input-length: var(--name-input-length);
+        }
+        .newroom > material-icon {
+          align-self: flex-end;
+          margin: 0 24px 10px auto;
+        }
+        .room >material-icon {
+          cursor: pointer;
         }
       </style>
       <app-page heading="Rooms">
         <div class="container">
           <section id="menu">
-            <div class="menuitem" role="menuitem" @click=${this._goHome}><material-icon>home</material-icon><div>Home</div></div>
-            <div class="menuitem" role="menuitem" @click=${this._editProfile}><material-icon>account_box</material-icon><div>Edit Profile</div></div>
+            <div class="menuitem" role="menuitem" @click=${this._goHome}><material-icon class="home">home</material-icon><div>Home</div></div>
+            <div class="menuitem" role="menuitem" @click=${this._editProfile}><material-icon class="edit">account_box</material-icon><div>Edit Profile</div></div>
             ${cache(this.admin ? html`
-              <div class="menuitem" role="menuitem" @click=${this._userAdmin}><material-icon>people_outline</material-icon><div>Users Admin</div></div>
+              <div class="menuitem" role="menuitem" @click=${this._userAdmin}><material-icon class="admin">people_outline</material-icon><div>Users Admin</div></div>
             `: '')}
             <div class="menuitem" role="menuitem" @click=${this._logoff}><material-icon>exit_to_app</material-icon><div>Log Off</div></div>          
           </section>
           <section class="scrollable">
+            <div class="room newroom">
+              <styled-input id="newroom" label="New Room" name="newroom" @value-changed=${this._newRoomChanged}></styled-input>
+              <material-icon class="add" @click=${this._newRoom}>note_add</material-icon>
+            </div>
             ${cache(this.rooms.map(room => html`
               <div class="room" @click=${this._hostMeeting} data-room=${room.name}>
                 <span>${room.name}</span>

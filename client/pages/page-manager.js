@@ -59,7 +59,6 @@ export class PageManager extends RouteManager {
     super.connectedCallback();
     const configPromise = new Promise(resolve => {
       global.config.then(() => {
-        console.log('check if I am logged in')
         const hostTester = new RegExp(`^(.*; +)?${localStorage.getItem('meetingHost')}=([^;]+)(.*)?$`);
         const matches = document.cookie.match(hostTester);
         if (matches) {
